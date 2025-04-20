@@ -74,6 +74,18 @@ export const updateTrack = createAsyncThunk(
   }
 )
 
+export const deleteTrack = createAsyncThunk(
+  'tracks/deleteTrack',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      await axios.delete(`http://localhost:8000/api/tracks/${id}`)
+      return id
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || 'Delete failed')
+    }
+  }
+)
+
 const tracksSlice = createSlice({
   name: 'tracks',
   initialState,
@@ -109,6 +121,9 @@ const tracksSlice = createSlice({
         if (index !== -1) {
           state.list[index] = action.payload
         }
+      })
+      .addCase(deleteTrack.fulfilled, (state, action) => {
+        state.list = state.list.filter(track => track.id !== action.payload)
       })
   },
 })

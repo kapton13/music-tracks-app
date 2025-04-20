@@ -6,6 +6,7 @@ import {
   fetchTracks,
   createTrack,
   updateTrack,
+  deleteTrack,
 } from '../../features/tracks/tracksSlice'
 import { Track } from '../../features/tracks/types'
 
@@ -19,6 +20,10 @@ const TracksPage = () => {
   const { list, loading, error } = useSelector((state: RootState) => state.tracks)
   const [isModalOpen, setModalOpen] = useState(false)
   const [editingTrack, setEditingTrack] = useState<Track | null>(null)
+
+  useEffect(() => {
+    dispatch(fetchTracks())
+  }, [dispatch])
 
   const handleCreateOrUpdate = async (formData: any) => {
     try {
@@ -37,9 +42,17 @@ const TracksPage = () => {
     }
   }
 
-  useEffect(() => {
-    dispatch(fetchTracks())
-  }, [dispatch])
+  const handleDelete = async (id: string) => {
+    const confirmed = window.confirm('Are you sure you want to delete this track?')
+    if (!confirmed) return
+  
+    try {
+      await dispatch(deleteTrack(id)).unwrap()
+      alert('Track deleted!')
+    } catch (e: any) {
+      alert(`Error: ${e}`)
+    }
+  }
 
   return (
     <div className={styles.container}>
@@ -76,6 +89,12 @@ const TracksPage = () => {
                 }}
               >
                 Edit
+              </button>
+              <button
+                data-testid={`delete-track-${track.id}`}
+                onClick={() => handleDelete(track.id)}
+              >
+                Delete
               </button>
             </div>
           ))}
