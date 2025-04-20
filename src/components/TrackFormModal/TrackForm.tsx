@@ -19,23 +19,30 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>
 
-const TrackForm = ({ onSubmit }: { onSubmit: (data: FormData) => void }) => {
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      title: '',
-      artist: '',
-      album: '',
-      coverImage: '',
-      genres: [],
-    },
-  })
+const TrackForm = ({
+    onSubmit,
+    defaultValues,
+  }: {
+    onSubmit: (data: FormData) => void
+    defaultValues?: Partial<FormData>
+  }) => {
+    const {
+      register,
+      handleSubmit,
+      setValue,
+      watch,
+      formState: { errors },
+    } = useForm<FormData>({
+      resolver: zodResolver(schema),
+      defaultValues: {
+        title: '',
+        artist: '',
+        album: '',
+        coverImage: '',
+        genres: [],
+        ...defaultValues,
+      },
+    })
 
   const selectedGenres = watch('genres')
 

@@ -56,6 +56,24 @@ export const createTrack = createAsyncThunk(
   }
 )
 
+export const updateTrack = createAsyncThunk(
+  'tracks/updateTrack',
+  async (
+    {
+      id,
+      data,
+    }: { id: string; data: Partial<Track> },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await axios.put(`http://localhost:8000/api/tracks/${id}`, data)
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || 'Update failed')
+    }
+  }
+)
+
 const tracksSlice = createSlice({
   name: 'tracks',
   initialState,
@@ -85,6 +103,12 @@ const tracksSlice = createSlice({
       .addCase(createTrack.rejected, (state, action) => {
         state.loading = false
         state.error = action.error.message || 'Failed to create track'
+      })
+      .addCase(updateTrack.fulfilled, (state, action) => {
+        const index = state.list.findIndex(t => t.id === action.payload.id)
+        if (index !== -1) {
+          state.list[index] = action.payload
+        }
       })
   },
 })
