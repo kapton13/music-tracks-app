@@ -8,6 +8,7 @@ import {
   updateTrack,
   deleteTrack,
 } from '../../features/tracks/tracksSlice'
+import { fetchGenres } from '../../features/genres/genresSlice'
 import { Track } from '../../features/tracks/types'
 import useDebounce from '../../hooks/useDebounce'
 
@@ -19,6 +20,7 @@ import styles from './TracksPage.module.css'
 const TracksPage = () => {
   const dispatch = useDispatch<AppDispatch>()
   const { list, loading, error, metadata } = useSelector((state: RootState) => state.tracks)
+  const { list: genres } = useSelector((state: RootState) => state.genres)
 
   const [isModalOpen, setModalOpen] = useState(false)
   const [editingTrack, setEditingTrack] = useState<Track | null>(null)
@@ -30,9 +32,23 @@ const TracksPage = () => {
 
   const debouncedSearch = useDebounce(search, 400)
 
+  const [genreFilter, setGenreFilter] = useState('')
+  const [artistFilter, setArtistFilter] = useState('')
+
   useEffect(() => {
-    dispatch(fetchTracks({ page, search: debouncedSearch, sort, order }))
-  }, [dispatch, page, debouncedSearch, sort, order])
+    dispatch(fetchTracks({
+      page,
+      search: debouncedSearch,
+      sort,
+      order,
+      genre: genreFilter || undefined,
+      artist: artistFilter || undefined,
+    }))
+  }, [dispatch, page, debouncedSearch, sort, order, genreFilter, artistFilter])
+
+  useEffect(() => {
+    dispatch(fetchGenres())
+  }, [dispatch])
 
   const handleCreateOrUpdate = async (formData: any) => {
     try {
@@ -102,6 +118,36 @@ const TracksPage = () => {
           >
             {order === 'asc' ? '↑' : '↓'}
           </button>
+            
+          <select
+            data-testid="filter-genre"
+            value={genreFilter}
+            onChange={e => {
+              setPage(1)
+              setGenreFilter(e.target.value)
+            }}
+          >
+            <option value="">All Genres</option>
+            {genres.map(genre => (
+              <option key={genre} value={genre}>
+                {genre}
+              </option>
+            ))}
+          </select>
+
+          <select
+            data-testid="filter-artist"
+            value={artistFilter}
+            onChange={e => {
+              setPage(1)
+              setArtistFilter(e.target.value)
+            }}
+          >
+            <option value="">All Artists</option>
+            <option value="The Beatles">The Beatles</option>
+            <option value="Daft Punk">Daft Punk</option>
+            <option value="Adele">Adele</option>
+          </select>
         </div>
 
         <button
@@ -128,6 +174,8 @@ const TracksPage = () => {
             <div key={track.id} className={styles.trackItem} data-testid={`track-item-${track.id}`}>
               <div data-testid={`track-item-${track.id}-title`}>Title: {track.title}</div>
               <div data-testid={`track-item-${track.id}-artist`}>Artist: {track.artist}</div>
+              <div>Album: {track.album}</div>
+              <div>Genres: {track.genres?.join(', ')}</div>
               <button
                 data-testid={`edit-track-${track.id}`}
                 onClick={() => {
