@@ -1,15 +1,29 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { AppDispatch, RootState } from '../../app/store'
-import { fetchTracks } from '../../features/tracks/tracksSlice'
+import { fetchTracks, createTrack } from '../../features/tracks/tracksSlice'
+
+import TrackFormModal from '../../components/TrackFormModal/TrackFormModal'
+import TrackForm from '../../components/TrackFormModal/TrackForm'
 
 import styles from './TracksPage.module.css'
 
 const TracksPage = () => {
   const dispatch = useDispatch<AppDispatch>()
   const { list, loading, error } = useSelector((state: RootState) => state.tracks)
-  console.log('TracksPage -> list', list);
+  const [isModalOpen, setModalOpen] = useState(false)
+
+  const handleCreateTrack = async (data: any) => {
+    try {
+      await dispatch(createTrack(data)).unwrap()
+      setModalOpen(false)
+      alert('Track created successfully!')
+    } catch (e) {
+      console.error('Create failed:', e)
+      alert('Failed to create track.')
+    }
+  }
 
   useEffect(() => {
     dispatch(fetchTracks())
@@ -21,7 +35,7 @@ const TracksPage = () => {
       <button
         className={styles.createButton}
         data-testid="create-track-button"
-        onClick={() => {}}
+        onClick={() => setModalOpen(true)}
       >
         Create Track
       </button>
@@ -40,6 +54,10 @@ const TracksPage = () => {
           ))}
         </div>
       )}
+
+      <TrackFormModal isOpen={isModalOpen} onClose={() => setModalOpen(false)}>
+        <TrackForm onSubmit={handleCreateTrack} />
+      </TrackFormModal>
     </div>
   )
 }

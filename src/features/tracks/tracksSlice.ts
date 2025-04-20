@@ -32,6 +32,30 @@ export const fetchTracks = createAsyncThunk('tracks/fetchTracks', async () => {
   return response.data
 })
 
+export const createTrack = createAsyncThunk(
+  'tracks/createTrack',
+  async (trackData: {
+    title: string
+    artist: string
+    album?: string
+    genres: string[]
+    coverImage: string
+  }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post('http://localhost:8000/api/tracks', {
+        ...trackData,
+        album: trackData.album || '',
+      })
+      return response.data
+    } catch (error: any) {
+      if (error.response && error.response.data?.error) {
+        return rejectWithValue(error.response.data.error)
+      }
+      return rejectWithValue('Unexpected error')
+    }
+  }
+)
+
 const tracksSlice = createSlice({
   name: 'tracks',
   initialState,
@@ -50,6 +74,17 @@ const tracksSlice = createSlice({
       .addCase(fetchTracks.rejected, (state, action) => {
         state.loading = false
         state.error = action.error.message || 'Failed to load tracks'
+      })
+      .addCase(createTrack.pending, state => {
+        state.loading = true
+      })
+      .addCase(createTrack.fulfilled, (state, action) => {
+        state.loading = false
+        state.list.unshift(action.payload)
+      })
+      .addCase(createTrack.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.error.message || 'Failed to create track'
       })
   },
 })

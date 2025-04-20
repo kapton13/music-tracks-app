@@ -1,0 +1,74 @@
+/* Modal overlay and content */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .modal {
+    background: white;
+    border-radius: 10px;
+    padding: 24px;
+    width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Close button */
+  .close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 20px;
+    font-weight: bold;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+  
+  /* Form layout */
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  /* Genre tags */
+  .genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .genre {
+    border: 1px solid #ccc;
+    background-color: #eee;
+    border-radius: 20px;
+    padding: 4px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    user-select: none;
+    transition: background-color 0.2s ease;
+  }
+  
+  .genre:hover {
+    background-color: #ddd;
+  }
+  
+  .selected {
+    background-color: #0077ff;
+    color: white;
+    border-color: #0077ff;
+  }
+  
+  .error {
+    color: red;
+    font-size: 13px;
+  }
+  
