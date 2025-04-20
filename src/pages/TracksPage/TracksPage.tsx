@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { AppDispatch, RootState } from '../../app/store'
 
+import { AppDispatch, RootState } from '../../app/store'
 import {
   fetchTracks,
   createTrack,
@@ -9,6 +9,7 @@ import {
   deleteTrack,
 } from '../../features/tracks/tracksSlice'
 import { Track } from '../../features/tracks/types'
+import useDebounce from '../../hooks/useDebounce'
 
 import TrackFormModal from '../../components/TrackFormModal/TrackFormModal'
 import TrackForm from '../../components/TrackFormModal/TrackForm'
@@ -17,13 +18,21 @@ import styles from './TracksPage.module.css'
 
 const TracksPage = () => {
   const dispatch = useDispatch<AppDispatch>()
-  const { list, loading, error } = useSelector((state: RootState) => state.tracks)
+  const { list, loading, error, metadata } = useSelector((state: RootState) => state.tracks)
+
   const [isModalOpen, setModalOpen] = useState(false)
   const [editingTrack, setEditingTrack] = useState<Track | null>(null)
 
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
+  const [sort, setSort] = useState<'title' | 'artist' | 'album' | 'createdAt'>('title')
+  const [order, setOrder] = useState<'asc' | 'desc'>('asc')
+
+  const debouncedSearch = useDebounce(search, 400)
+
   useEffect(() => {
-    dispatch(fetchTracks())
-  }, [dispatch])
+    dispatch(fetchTracks({ page, search: debouncedSearch, sort, order }))
+  }, [dispatch, page, debouncedSearch, sort, order])
 
   const handleCreateOrUpdate = async (formData: any) => {
     try {
@@ -35,6 +44,7 @@ const TracksPage = () => {
         alert('Track created!')
       }
 
+      await dispatch(fetchTracks({ page, search: debouncedSearch, sort, order }))
       setModalOpen(false)
       setEditingTrack(null)
     } catch (e: any) {
@@ -45,9 +55,10 @@ const TracksPage = () => {
   const handleDelete = async (id: string) => {
     const confirmed = window.confirm('Are you sure you want to delete this track?')
     if (!confirmed) return
-  
+
     try {
       await dispatch(deleteTrack(id)).unwrap()
+      await dispatch(fetchTracks({ page, search: debouncedSearch, sort, order }))
       alert('Track deleted!')
     } catch (e: any) {
       alert(`Error: ${e}`)
@@ -58,16 +69,52 @@ const TracksPage = () => {
     <div className={styles.container}>
       <h1 data-testid="tracks-header">Music Tracks</h1>
 
-      <button
-        className={styles.createButton}
-        data-testid="create-track-button"
-        onClick={() => {
-          setEditingTrack(null)
-          setModalOpen(true)
-        }}
-      >
-        Create Track
-      </button>
+      <div className={styles.controls}>
+        <input
+          data-testid="search-input"
+          type="text"
+          placeholder="Search by title, artist, album..."
+          value={search}
+          onChange={e => {
+            setPage(1)
+            setSearch(e.target.value)
+          }}
+        />
+
+        <div className={styles.sortGroup}>
+          <select
+            data-testid="sort-select"
+            value={sort}
+            onChange={e => {
+              setPage(1)
+              setSort(e.target.value as typeof sort)
+            }}
+          >
+            <option value="title">Title</option>
+            <option value="artist">Artist</option>
+            <option value="album">Album</option>
+            <option value="createdAt">Created At</option>
+          </select>
+
+          <button
+            className={styles.sortButton}
+            onClick={() => setOrder(prev => (prev === 'asc' ? 'desc' : 'asc'))}
+          >
+            {order === 'asc' ? '↑' : '↓'}
+          </button>
+        </div>
+
+        <button
+          className={styles.createButton}
+          data-testid="create-track-button"
+          onClick={() => {
+            setEditingTrack(null)
+            setModalOpen(true)
+          }}
+        >
+          Create Track
+        </button>
+      </div>
 
       {loading ? (
         <div data-testid="loading-tracks">Loading tracks...</div>
@@ -98,6 +145,30 @@ const TracksPage = () => {
               </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {metadata.totalPages > 1 && (
+        <div data-testid="pagination" className={styles.pagination}>
+          <button
+            data-testid="pagination-prev"
+            onClick={() => setPage(prev => Math.max(1, prev - 1))}
+            disabled={page <= 1}
+          >
+            Prev
+          </button>
+
+          <span>
+            Page {page} / {metadata.totalPages}
+          </span>
+
+          <button
+            data-testid="pagination-next"
+            onClick={() => setPage(prev => Math.min(metadata.totalPages, prev + 1))}
+            disabled={page >= metadata.totalPages}
+          >
+            Next
+          </button>
         </div>
       )}
 
