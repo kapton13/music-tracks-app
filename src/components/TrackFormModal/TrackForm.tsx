@@ -12,11 +12,7 @@ const schema = z.object({
   title: z.string().min(1, 'Title is required'),
   artist: z.string().min(1, 'Artist is required'),
   album: z.string().optional(),
-  coverImage: z
-    .string()
-    .url('Cover image must be a valid URL')
-    .optional()
-    .or(z.literal('')),
+  coverImage: z.string().url('Cover image must be a valid URL').optional().or(z.literal('')),
   genres: z.array(z.string()).min(1, 'At least one genre is required'),
 })
 
@@ -24,10 +20,19 @@ type FormData = z.infer<typeof schema>
 
 interface Props {
   onSubmit: (data: FormData) => void
-  defaultValues?: Partial<FormData>
+  defaultValues?: Partial<FormData> & { id?: string; audioFile?: string }
+  onUpload: (id: string) => void
+  onDeleteFile: (id: string) => void
+  trackIdRef: React.RefObject<string | null>
+  pendingUploadId: string | null
 }
 
-const TrackForm = ({ onSubmit, defaultValues }: Props) => {
+const TrackForm = ({
+  onSubmit,
+  defaultValues,
+  onUpload,
+  onDeleteFile,
+}: Props) => {
   const {
     register,
     handleSubmit,
@@ -64,7 +69,6 @@ const TrackForm = ({ onSubmit, defaultValues }: Props) => {
   }
 
   useEffect(() => {
-
     if (defaultValues?.genres) {
       setValue('genres', defaultValues.genres)
     }
@@ -115,6 +119,19 @@ const TrackForm = ({ onSubmit, defaultValues }: Props) => {
           </div>
         )}
       </div>
+
+      {defaultValues?.id && (
+        <div className={styles.audioControls}>
+          {defaultValues.audioFile ? (
+            <>
+              <button type="button" onClick={() => onDeleteFile(defaultValues.id!)}>Delete Audio</button>
+              <button type="button" onClick={() => onUpload(defaultValues.id!)}>Replace Audio</button>
+            </>
+          ) : (
+            <button type="button" onClick={() => onUpload(defaultValues.id!)}>Upload Audio</button>
+          )}
+        </div>
+      )}
 
       <button data-testid="submit-button" type="submit">
         Save

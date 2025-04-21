@@ -45,6 +45,7 @@ const TracksPage = () => {
   const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [selectionMode, setSelectionMode] = useState(false)
+  const [pendingUploadId, setPendingUploadId] = useState<string | null>(null)
 
   useEffect(() => {
     dispatch(fetchGenres())
@@ -64,12 +65,21 @@ const TracksPage = () => {
 
   const handleCreateOrUpdate = async (formData: TrackFormData) => {
     try {
+      let createdTrack: Track | null = null
       if (editingTrack) {
-        await dispatch(updateTrack({ id: editingTrack.id, data: formData })).unwrap()
+        const updated = await dispatch(updateTrack({ id: editingTrack.id, data: formData })).unwrap()
+        createdTrack = updated
         toast.success('Track updated!')
       } else {
-        await dispatch(createTrack(formData)).unwrap()
+        const newTrack = await dispatch(createTrack(formData)).unwrap()
+        createdTrack = newTrack
         toast.success('Track created!')
+      }
+
+      if (createdTrack && fileInputRef.current?.files?.[0]) {
+        const file = fileInputRef.current.files[0]
+        await dispatch(uploadAudioFile({ id: createdTrack.id, file })).unwrap()
+        toast.success('Audio uploaded!')
       }
 
       await dispatch(fetchTracks({ page, search: debouncedSearch, sort, order, genre: genreFilter || undefined, artist: artistFilter || undefined }))
@@ -95,13 +105,14 @@ const TracksPage = () => {
 
   const handleUpload = (id: string) => {
     trackIdRef.current = id
+    setPendingUploadId(id)
     fileInputRef.current?.click()
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file && trackIdRef.current) {
-      dispatch(uploadAudioFile({ id: trackIdRef.current, file }))
+    if (file && pendingUploadId) {
+      dispatch(uploadAudioFile({ id: pendingUploadId, file }))
         .unwrap()
         .then(() => toast.success('Audio uploaded!'))
         .catch(err => toast.error(String(err)))
@@ -375,6 +386,10 @@ const TracksPage = () => {
         <TrackForm
           onSubmit={handleCreateOrUpdate}
           defaultValues={editingTrack || undefined}
+          onUpload={handleUpload}
+          onDeleteFile={handleDeleteFile}
+          trackIdRef={trackIdRef}
+          pendingUploadId={pendingUploadId}
         />
       </TrackFormModal>
     </div>
