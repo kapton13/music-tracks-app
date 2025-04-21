@@ -16,6 +16,7 @@ import useDebounce from '../../hooks/useDebounce'
 
 import TrackFormModal from '../../components/TrackFormModal/TrackFormModal'
 import TrackForm from '../../components/TrackFormModal/TrackForm'
+import Waveform from '../../components/Waveform/Waveform'
 
 import styles from './TracksPage.module.css'
 
@@ -213,17 +214,18 @@ const TracksPage = () => {
               <div>Genres: {track.genres?.join(', ')}</div>
 
               {track.audioFile ? (
-                <audio
-                ref={el => {
-                  audioRefs.current[track.id] = el
-                }}
-                  controls
-                  data-testid={`audio-player-${track.id}`}
-                  onPlay={() => handlePlay(track.id)}
-                >
-                  <source src={`http://localhost:8000/api/files/${track.audioFile}`} />
-                  Your browser does not support the audio element.
-                </audio>
+                <Waveform
+                  trackId={track.id}
+                  audioUrl={`http://localhost:8000/api/files/${track.audioFile}`}
+                  isPlaying={currentlyPlayingId === track.id}
+                  onPlay={(id, forcePause = false) => {
+                    if (forcePause) {
+                      setCurrentlyPlayingId(null)
+                    } else {
+                      handlePlay(id)
+                    }
+                  }}
+                />
               ) : (
                 <button
                   data-testid={`upload-track-${track.id}`}
