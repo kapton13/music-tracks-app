@@ -46,6 +46,7 @@ const TracksPage = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [selectionMode, setSelectionMode] = useState(false)
   const [pendingUploadId, setPendingUploadId] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     dispatch(fetchGenres())
@@ -78,7 +79,20 @@ const TracksPage = () => {
 
       if (createdTrack && fileInputRef.current?.files?.[0]) {
         const file = fileInputRef.current.files[0]
+
+        if (!['audio/mpeg', 'audio/wav'].includes(file.type)) {
+          toast.error('Only .mp3 and .wav files are allowed')
+          return
+        }
+
+        if (file.size > 20 * 1024 * 1024) {
+          toast.error('File size must be 20MB or less')
+          return
+        }
+
+        setUploading(true)
         await dispatch(uploadAudioFile({ id: createdTrack.id, file })).unwrap()
+        setUploading(false)
         toast.success('Audio uploaded!')
       }
 
@@ -112,10 +126,20 @@ const TracksPage = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file && pendingUploadId) {
+      if (!['audio/mpeg', 'audio/wav'].includes(file.type)) {
+        toast.error('Only .mp3 and .wav files are allowed')
+        return
+      }
+      if (file.size > 20 * 1024 * 1024) {
+        toast.error('File size must be 20MB or less')
+        return
+      }
+      setUploading(true)
       dispatch(uploadAudioFile({ id: pendingUploadId, file }))
         .unwrap()
         .then(() => toast.success('Audio uploaded!'))
         .catch(err => toast.error(String(err)))
+        .finally(() => setUploading(false))
     }
   }
 
@@ -391,6 +415,7 @@ const TracksPage = () => {
           trackIdRef={trackIdRef}
           pendingUploadId={pendingUploadId}
         />
+        {uploading && <p className={styles.uploading}>Uploading file...</p>}
       </TrackFormModal>
     </div>
   )
