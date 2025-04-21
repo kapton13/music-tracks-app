@@ -37,13 +37,13 @@ const Waveform = ({ audioUrl, isPlaying, onPlay, trackId }: WaveformProps) => {
 
     waveRef.current.on('finish', () => {
       waveRef.current?.seekTo(0)
-      onPlay(trackId, true) // поставити у "paused" зверху
+      onPlay(trackId, true)
     })
 
     return () => {
       waveRef.current?.destroy()
     }
-  }, [audioUrl])
+  }, [audioUrl, volume, isPlaying, onPlay, trackId])
 
   useEffect(() => {
     if (!waveRef.current) return

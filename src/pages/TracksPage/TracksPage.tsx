@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { AppDispatch, RootState } from '../../app/store'
@@ -103,13 +103,17 @@ const TracksPage = () => {
     }
   }
 
-  const handlePlay = (id: string) => {
-    if (currentlyPlayingId && currentlyPlayingId !== id) {
-      const prevAudio = audioRefs.current[currentlyPlayingId]
-      if (prevAudio) prevAudio.pause()
+  const handleTogglePlay = useCallback((id: string, forcePause = false) => {
+    if (forcePause || currentlyPlayingId === id) {
+      setCurrentlyPlayingId(null)
+    } else {
+      if (currentlyPlayingId && currentlyPlayingId !== id) {
+        const prevAudio = audioRefs.current[currentlyPlayingId]
+        if (prevAudio) prevAudio.pause()
+      }
+      setCurrentlyPlayingId(id)
     }
-    setCurrentlyPlayingId(id)
-  }
+  }, [currentlyPlayingId])
 
   return (
     <div className={styles.container}>
@@ -218,13 +222,7 @@ const TracksPage = () => {
                   trackId={track.id}
                   audioUrl={`http://localhost:8000/api/files/${track.audioFile}`}
                   isPlaying={currentlyPlayingId === track.id}
-                  onPlay={(id, forcePause = false) => {
-                    if (forcePause) {
-                      setCurrentlyPlayingId(null)
-                    } else {
-                      handlePlay(id)
-                    }
-                  }}
+                  onPlay={handleTogglePlay}
                 />
               ) : (
                 <button
