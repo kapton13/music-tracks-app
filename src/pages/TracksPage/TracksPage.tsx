@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { toast } from 'react-toastify'
 
 import { AppDispatch, RootState } from '../../app/store'
 import {
@@ -61,17 +62,17 @@ const TracksPage = () => {
     try {
       if (editingTrack) {
         await dispatch(updateTrack({ id: editingTrack.id, data: formData })).unwrap()
-        alert('Track updated!')
+        toast.success('Track updated!')
       } else {
         await dispatch(createTrack(formData)).unwrap()
-        alert('Track created!')
+        toast.success('Track created!')
       }
 
       await dispatch(fetchTracks({ page, search: debouncedSearch, sort, order, genre: genreFilter || undefined, artist: artistFilter || undefined }))
       setModalOpen(false)
       setEditingTrack(null)
     } catch (e) {
-      alert(`Error: ${String(e)}`)
+      toast.error(`Error: ${String(e)}`)
     }
   }
 
@@ -82,9 +83,9 @@ const TracksPage = () => {
     try {
       await dispatch(deleteTrack(id)).unwrap()
       await dispatch(fetchTracks({ page, search: debouncedSearch, sort, order, genre: genreFilter || undefined, artist: artistFilter || undefined }))
-      alert('Track deleted!')
+      toast.success('Track deleted!')
     } catch (e) {
-      alert(`Error: ${String(e)}`)
+      toast.error(`Error: ${String(e)}`)
     }
   }
 
@@ -98,8 +99,8 @@ const TracksPage = () => {
     if (file && trackIdRef.current) {
       dispatch(uploadAudioFile({ id: trackIdRef.current, file }))
         .unwrap()
-        .then(() => alert('Audio uploaded!'))
-        .catch(err => alert(err))
+        .then(() => toast.success('Audio uploaded!'))
+        .catch(err => toast.error(String(err)))
     }
   }
 
