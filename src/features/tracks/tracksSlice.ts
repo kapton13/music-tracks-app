@@ -13,6 +13,7 @@ interface TracksState {
   }
   loading: boolean
   error: string | null
+  artists: string[]
 }
 
 const initialState: TracksState = {
@@ -25,6 +26,7 @@ const initialState: TracksState = {
   },
   loading: false,
   error: null,
+  artists: [],
 }
 
 export const fetchTracks = createAsyncThunk(
@@ -52,6 +54,16 @@ export const fetchTracks = createAsyncThunk(
 
     const response = await axios.get(`http://localhost:8000/api/tracks?${query.toString()}`)
     return response.data
+  }
+)
+
+export const fetchAllArtists = createAsyncThunk(
+  'tracks/fetchAllArtists',
+  async () => {
+    const response = await axios.get('http://localhost:8000/api/tracks?limit=10000')
+    const data = response.data.data as Track[]
+    const artists = Array.from(new Set(data.map(t => t.artist))).sort((a, b) => a.localeCompare(b))
+    return artists
   }
 )
 
@@ -133,6 +145,9 @@ const tracksSlice = createSlice({
       .addCase(fetchTracks.rejected, (state, action) => {
         state.loading = false
         state.error = action.error.message || 'Failed to load tracks'
+      })
+      .addCase(fetchAllArtists.fulfilled, (state, action) => {
+        state.artists = action.payload
       })
       .addCase(createTrack.pending, state => {
         state.loading = true

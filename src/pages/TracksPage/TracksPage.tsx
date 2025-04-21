@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '../../app/store'
 import {
   fetchTracks,
+  fetchAllArtists,
   createTrack,
   updateTrack,
   deleteTrack,
@@ -21,6 +22,7 @@ const TracksPage = () => {
   const dispatch = useDispatch<AppDispatch>()
   const { list, loading, error, metadata } = useSelector((state: RootState) => state.tracks)
   const { list: genres } = useSelector((state: RootState) => state.genres)
+  const artists = useSelector((state: RootState) => state.tracks.artists)
 
   const [isModalOpen, setModalOpen] = useState(false)
   const [editingTrack, setEditingTrack] = useState<Track | null>(null)
@@ -48,6 +50,10 @@ const TracksPage = () => {
 
   useEffect(() => {
     dispatch(fetchGenres())
+  }, [dispatch])
+
+  useEffect(() => {
+    dispatch(fetchAllArtists())
   }, [dispatch])
 
   const handleCreateOrUpdate = async (formData: any) => {
@@ -144,9 +150,11 @@ const TracksPage = () => {
             }}
           >
             <option value="">All Artists</option>
-            <option value="The Beatles">The Beatles</option>
-            <option value="Daft Punk">Daft Punk</option>
-            <option value="Adele">Adele</option>
+            {artists.map(artist => (
+              <option key={artist} value={artist}>
+                {artist}
+              </option>
+            ))}
           </select>
         </div>
 
