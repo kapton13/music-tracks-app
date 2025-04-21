@@ -74,7 +74,7 @@ export const createTrack = createAsyncThunk<
     artist: string
     album?: string
     genres: string[]
-    coverImage: string
+    coverImage?: string
   },
   { rejectValue: string }
 >(

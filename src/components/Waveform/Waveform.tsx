@@ -24,7 +24,6 @@ const Waveform = ({ audioUrl, isPlaying, onPlay, trackId }: WaveformProps) => {
       progressColor: '#3b82f6',
       barWidth: 2,
       height: 64,
-      responsive: true,
       normalize: true,
       cursorColor: '#3b82f6',
     })
@@ -48,7 +47,11 @@ const Waveform = ({ audioUrl, isPlaying, onPlay, trackId }: WaveformProps) => {
 
   useEffect(() => {
     if (!waveRef.current) return
-    isPlaying ? waveRef.current.play() : waveRef.current.pause()
+    if (isPlaying) {
+        waveRef.current?.play()
+      } else {
+        waveRef.current?.pause()
+      }
   }, [isPlaying])
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {

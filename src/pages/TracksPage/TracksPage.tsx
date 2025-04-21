@@ -11,7 +11,7 @@ import {
   fetchAllArtists,
 } from '../../features/tracks/tracksSlice'
 import { fetchGenres } from '../../features/genres/genresSlice'
-import { Track } from '../../features/tracks/types'
+import { Track, TrackFormData } from '../../features/tracks/types'
 import useDebounce from '../../hooks/useDebounce'
 
 import TrackFormModal from '../../components/TrackFormModal/TrackFormModal'
@@ -57,7 +57,7 @@ const TracksPage = () => {
     }))
   }, [dispatch, page, debouncedSearch, sort, order, genreFilter, artistFilter])
 
-  const handleCreateOrUpdate = async (formData: any) => {
+  const handleCreateOrUpdate = async (formData: TrackFormData) => {
     try {
       if (editingTrack) {
         await dispatch(updateTrack({ id: editingTrack.id, data: formData })).unwrap()
@@ -70,8 +70,8 @@ const TracksPage = () => {
       await dispatch(fetchTracks({ page, search: debouncedSearch, sort, order, genre: genreFilter || undefined, artist: artistFilter || undefined }))
       setModalOpen(false)
       setEditingTrack(null)
-    } catch (e: any) {
-      alert(`Error: ${e}`)
+    } catch (e) {
+      alert(`Error: ${String(e)}`)
     }
   }
 
@@ -83,8 +83,8 @@ const TracksPage = () => {
       await dispatch(deleteTrack(id)).unwrap()
       await dispatch(fetchTracks({ page, search: debouncedSearch, sort, order, genre: genreFilter || undefined, artist: artistFilter || undefined }))
       alert('Track deleted!')
-    } catch (e: any) {
-      alert(`Error: ${e}`)
+    } catch (e) {
+      alert(`Error: ${String(e)}`)
     }
   }
 
