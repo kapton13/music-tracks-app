@@ -11,6 +11,7 @@ import {
   uploadAudioFile,
   fetchAllArtists,
   deleteTracksBulk,
+  deleteTrackFile,
 } from '../../features/tracks/tracksSlice'
 import { fetchGenres } from '../../features/genres/genresSlice'
 import { Track, TrackFormData } from '../../features/tracks/types'
@@ -141,6 +142,19 @@ const TracksPage = () => {
       setSelectionMode(false)
     } catch (e) {
       toast.error(`Bulk delete failed: ${String(e)}`)
+    }
+  }
+
+  const handleDeleteFile = async (id: string) => {
+    const confirmed = window.confirm('Are you sure you want to delete the audio file?')
+    if (!confirmed) return
+  
+    try {
+      await dispatch(deleteTrackFile(id)).unwrap()
+      await dispatch(fetchTracks({ page, search: debouncedSearch, sort, order, genre: genreFilter || undefined, artist: artistFilter || undefined }))
+      toast.success('Audio file deleted!')
+    } catch (e) {
+      toast.error(`Error: ${String(e)}`)
     }
   }
 
@@ -281,12 +295,15 @@ const TracksPage = () => {
               <div>Genres: {track.genres?.join(', ')}</div>
 
               {track.audioFile ? (
-                <Waveform
-                  trackId={track.id}
-                  audioUrl={`http://localhost:8000/api/files/${track.audioFile}`}
-                  isPlaying={currentlyPlayingId === track.id}
-                  onPlay={handleTogglePlay}
-                />
+                <div data-testid={`track-item-${track.id}-audio`}>
+                  <Waveform
+                    trackId={track.id}
+                    audioUrl={`http://localhost:8000/api/files/${track.audioFile}`}
+                    isPlaying={currentlyPlayingId === track.id}
+                    onPlay={handleTogglePlay}
+                  />
+                  <button onClick={() => handleDeleteFile(track.id)}>Delete Audio File</button>
+                </div>
               ) : (
                 <button
                   data-testid={`upload-track-${track.id}`}

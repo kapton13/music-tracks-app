@@ -167,6 +167,23 @@ export const deleteTracksBulk = createAsyncThunk<
   }
 })
 
+export const deleteTrackFile = createAsyncThunk<
+  Track,
+  string,
+  { rejectValue: string }
+>(
+  'tracks/deleteTrackFile',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete(`http://localhost:8000/api/tracks/${id}/file`)
+      return response.data
+    } catch (error) {
+      const err = error as AxiosError<{ error: string }>
+      return rejectWithValue(err.response?.data?.error || 'Delete file failed')
+    }
+  }
+)
+
 const tracksSlice = createSlice({
   name: 'tracks',
   initialState,
@@ -252,6 +269,20 @@ const tracksSlice = createSlice({
         state.loading = false
         state.error = action.payload || 'Failed to delete selected tracks'
         toast.error(String(state.error))
+      })
+      .addCase(deleteTrackFile.pending, (state) => {
+        state.loading = true
+      })
+      .addCase(deleteTrackFile.fulfilled, (state, action) => {
+        state.loading = false
+        const index = state.list.findIndex(track => track.id === action.payload.id)
+        if (index !== -1) {
+          state.list[index] = action.payload
+        }
+      })
+      .addCase(deleteTrackFile.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload || 'Failed to delete audio file'
       })
   },
 })
