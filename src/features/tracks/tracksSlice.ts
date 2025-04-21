@@ -127,6 +127,31 @@ export const deleteTrack = createAsyncThunk<
   }
 )
 
+export const uploadAudioFile = createAsyncThunk<
+  Track,
+  { id: string; file: File },
+  { rejectValue: string }
+>(
+  'tracks/uploadAudioFile',
+  async ({ id, file }, { rejectWithValue }) => {
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await axios.post(`http://localhost:8000/api/tracks/${id}/upload`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+
+      return res.data
+    } catch (error) {
+      const err = error as AxiosError<{ error: string }>
+      return rejectWithValue(err.response?.data?.error || 'Upload failed')
+    }
+  }
+)
+
 const tracksSlice = createSlice({
   name: 'tracks',
   initialState,
@@ -138,6 +163,8 @@ const tracksSlice = createSlice({
         state.error = null
       })
       .addCase(fetchTracks.fulfilled, (state, action) => {
+        console.log(action.payload);
+        
         state.list = action.payload.data
         state.metadata = action.payload.meta
         state.loading = false
@@ -146,8 +173,32 @@ const tracksSlice = createSlice({
         state.loading = false
         state.error = action.error.message || 'Failed to load tracks'
       })
+      .addCase(fetchAllArtists.pending, state => {
+        state.loading = true
+        state.error = null
+      })
       .addCase(fetchAllArtists.fulfilled, (state, action) => {
         state.artists = action.payload
+        state.loading = false
+      })
+      .addCase(fetchAllArtists.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.error.message || 'Failed to fetch artists'
+      })
+      .addCase(uploadAudioFile.pending, state => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(uploadAudioFile.fulfilled, (state, action) => {
+        const index = state.list.findIndex(t => t.id === action.payload.id)
+        if (index !== -1) {
+          state.list[index] = action.payload
+        }
+        state.loading = false
+      })
+      .addCase(uploadAudioFile.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.error.message || 'Failed to upload audio file'
       })
       .addCase(createTrack.pending, state => {
         state.loading = true
