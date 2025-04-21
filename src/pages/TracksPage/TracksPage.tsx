@@ -10,6 +10,7 @@ import {
   deleteTrack,
   uploadAudioFile,
   fetchAllArtists,
+  deleteTracksBulk,
 } from '../../features/tracks/tracksSlice'
 import { fetchGenres } from '../../features/genres/genresSlice'
 import { Track, TrackFormData } from '../../features/tracks/types'
@@ -41,6 +42,8 @@ const TracksPage = () => {
   const trackIdRef = useRef<string | null>(null)
   const audioRefs = useRef<Record<string, HTMLAudioElement | null>>({})
   const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [selectionMode, setSelectionMode] = useState(false)
 
   useEffect(() => {
     dispatch(fetchGenres())
@@ -115,6 +118,31 @@ const TracksPage = () => {
       setCurrentlyPlayingId(id)
     }
   }, [currentlyPlayingId])
+
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    )
+  }
+  
+  const handleSelectAll = () => {
+    if (selectedIds.length === list.length) {
+      setSelectedIds([])
+    } else {
+      setSelectedIds(list.map(track => track.id))
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    try {
+      await dispatch(deleteTracksBulk(selectedIds)).unwrap()
+      await dispatch(fetchTracks({ page, search: debouncedSearch, sort, order, genre: genreFilter || undefined, artist: artistFilter || undefined }))
+      setSelectedIds([])
+      setSelectionMode(false)
+    } catch (e) {
+      toast.error(`Bulk delete failed: ${String(e)}`)
+    }
+  }
 
   return (
     <div className={styles.container}>
@@ -201,6 +229,32 @@ const TracksPage = () => {
         >
           Create Track
         </button>
+
+        <button
+          data-testid="select-mode-toggle"
+          onClick={() => setSelectionMode(prev => !prev)}
+        >
+          {selectionMode ? 'Cancel Selection' : 'Select Multiple'}
+        </button>
+
+        {selectionMode && (
+          <button
+            data-testid="select-all"
+            onClick={handleSelectAll}
+          >
+            {selectedIds.length === list.length ? 'Deselect All' : 'Select All'}
+          </button>
+        )}
+
+        {selectionMode && selectedIds.length > 0 && (
+          <button
+            className={styles.bulkDeleteButton}
+            data-testid="bulk-delete-button"
+            onClick={handleBulkDelete}
+          >
+            Delete selected ({selectedIds.length})
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -213,6 +267,14 @@ const TracksPage = () => {
         <div className={styles.trackList}>
           {list.map(track => (
             <div key={track.id} className={styles.trackItem} data-testid={`track-item-${track.id}`}>
+              {selectionMode && (
+                <input
+                  type="checkbox"
+                  checked={selectedIds.includes(track.id)}
+                  onChange={() => handleToggleSelect(track.id)}
+                  data-testid={`track-checkbox-${track.id}`}
+                />
+              )}
               <div data-testid={`track-item-${track.id}-title`}>Title: {track.title}</div>
               <div data-testid={`track-item-${track.id}-artist`}>Artist: {track.artist}</div>
               <div>Album: {track.album}</div>

@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import axios, { AxiosError } from 'axios'
+import { toast } from 'react-toastify'
 
 import { Track } from './types'
 
@@ -152,6 +153,20 @@ export const uploadAudioFile = createAsyncThunk<
   }
 )
 
+export const deleteTracksBulk = createAsyncThunk<
+  { success: string[]; failed: string[] },
+  string[],
+  { rejectValue: string }
+>('tracks/deleteTracksBulk', async (ids, { rejectWithValue }) => {
+  try {
+    const response = await axios.post('http://localhost:8000/api/tracks/delete', { ids })
+    return response.data
+  } catch (error) {
+    const err = error as AxiosError<{ error: string }>
+    return rejectWithValue(err?.response?.data?.error || 'Bulk delete failed')
+  }
+})
+
 const tracksSlice = createSlice({
   name: 'tracks',
   initialState,
@@ -219,6 +234,24 @@ const tracksSlice = createSlice({
       })
       .addCase(deleteTrack.fulfilled, (state, action) => {
         state.list = state.list.filter(track => track.id !== action.payload)
+      })
+      .addCase(deleteTracksBulk.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(deleteTracksBulk.fulfilled, (state, action) => {
+        const { success, failed } = action.payload
+        state.list = state.list.filter(track => !success.includes(track.id))
+        state.loading = false
+        toast.success(`Deleted ${success.length} tracks`)
+        if (failed.length > 0) {
+          toast.warn(`${failed.length} failed to delete.`)
+        }
+      })
+      .addCase(deleteTracksBulk.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload || 'Failed to delete selected tracks'
+        toast.error(String(state.error))
       })
   },
 })
