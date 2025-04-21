@@ -1,34 +1,67 @@
 .wrapper {
-    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    background-color: #f9fafb;
   }
   
   .waveContainer {
     width: 100%;
-    margin-bottom: 0.75rem;
+    height: 64px;
   }
   
   .controls {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 12px;
+    flex-wrap: wrap;
   }
   
-  .playButton {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: none;
+  .playButton,
+  .repeatButton {
     background-color: #3b82f6;
+    border: none;
     color: white;
     font-size: 18px;
+    border-radius: 999px;
+    width: 36px;
+    height: 36px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.3s ease;
   }
   
-  .playButton:hover {
+  .playButton:hover,
+  .repeatButton:hover {
     background-color: #2563eb;
+  }
+  
+  .seekBar {
+    flex: 1;
+    height: 4px;
+    appearance: none;
+    background-color: #d1d5db;
+    border-radius: 999px;
+    outline: none;
+    cursor: pointer;
+  }
+  
+  .seekBar::-webkit-slider-thumb {
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    background: #3b82f6;
+    cursor: pointer;
+    border: none;
+    margin-top: -4px;
+  }
+  
+  input[type='range'] {
+    cursor: pointer;
   }
   

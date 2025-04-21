@@ -13,7 +13,18 @@ interface WaveformProps {
 const Waveform = ({ audioUrl, isPlaying, onPlay, trackId }: WaveformProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const waveRef = useRef<WaveSurfer | null>(null)
+
   const [volume, setVolume] = useState(1)
+  const [duration, setDuration] = useState(0)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [isRepeat, setIsRepeat] = useState(false)
+  const isRepeatRef = useRef(isRepeat)
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60)
+    const s = Math.floor(seconds % 60)
+    return `${m}:${s < 10 ? '0' + s : s}`
+  }
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -31,41 +42,83 @@ const Waveform = ({ audioUrl, isPlaying, onPlay, trackId }: WaveformProps) => {
     waveRef.current.load(audioUrl)
 
     waveRef.current.on('ready', () => {
+      setDuration(waveRef.current?.getDuration() || 0)
       waveRef.current?.setVolume(volume)
-      if (isPlaying) waveRef.current?.play()
+    })
+
+    waveRef.current.on('audioprocess', () => {
+      if (waveRef.current?.isPlaying()) {
+        setCurrentTime(waveRef.current.getCurrentTime())
+      }
+    })
+
+    waveRef.current.on('interaction', () => {
+      setCurrentTime(waveRef.current?.getCurrentTime() || 0)
     })
 
     waveRef.current.on('finish', () => {
-      waveRef.current?.seekTo(0)
-      onPlay(trackId, true)
-    })
+        if (isRepeatRef.current) {
+          waveRef.current?.play()
+        } else {
+          waveRef.current?.seekTo(0)
+          onPlay(trackId, true)
+        }
+      })
 
     return () => {
       waveRef.current?.destroy()
     }
-  }, [audioUrl, volume, isPlaying, onPlay, trackId])
+  }, [audioUrl])
 
+  // Play / Pause control
   useEffect(() => {
     if (!waveRef.current) return
     if (isPlaying) {
-        waveRef.current?.play()
-      } else {
-        waveRef.current?.pause()
-      }
+      waveRef.current?.play()
+    } else {
+      waveRef.current?.pause()
+    }
   }, [isPlaying])
+
+  // Volume control
+  useEffect(() => {
+    waveRef.current?.setVolume(volume)
+  }, [volume])
+
+  // Автопауза при згортанні
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden) {
+        onPlay(trackId, true)
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [trackId, onPlay])
+
+  // Контроль повтору
+  useEffect(() => {
+    isRepeatRef.current = isRepeat
+  }, [isRepeat])
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value)
     setVolume(newVolume)
-    waveRef.current?.setVolume(newVolume)
+  }
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTime = parseFloat(e.target.value)
+    const percent = newTime / duration
+    waveRef.current?.seekTo(percent)
+    setCurrentTime(newTime)
   }
 
   const handleTogglePlay = () => {
     if (isPlaying) {
-      onPlay(trackId, true) // пауза
-    } else {
-      onPlay(trackId) // відтворення
-    }
+        onPlay(trackId, true)
+      } else {
+        onPlay(trackId)
+      }
   }
 
   return (
@@ -81,6 +134,20 @@ const Waveform = ({ audioUrl, isPlaying, onPlay, trackId }: WaveformProps) => {
           {isPlaying ? '⏸' : '▶️'}
         </button>
 
+        <span>{formatTime(currentTime)}</span>
+
+        <input
+          type="range"
+          min={0}
+          max={duration}
+          step={0.01}
+          value={currentTime}
+          onChange={handleSeek}
+          className={styles.seekBar}
+        />
+
+        <span>{formatTime(duration)}</span>
+
         <input
           type="range"
           min="0"
@@ -90,6 +157,14 @@ const Waveform = ({ audioUrl, isPlaying, onPlay, trackId }: WaveformProps) => {
           onChange={handleVolumeChange}
           aria-label="Volume"
         />
+
+        <button
+          onClick={() => setIsRepeat(prev => !prev)}
+          className={styles.repeatButton}
+          aria-label="Repeat"
+        >
+          🔁 {isRepeat ? 'on' : 'off'}
+        </button>
       </div>
     </div>
   )
