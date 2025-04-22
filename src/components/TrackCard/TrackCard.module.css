@@ -1,0 +1,74 @@
+.card {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+  }
+  
+  .card:hover {
+    transform: scale(1.005);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+  
+  .topRow {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  
+  .coverImage {
+    width: 72px;
+    height: 72px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid #cbd5e1;
+  }
+  
+  .meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-grow: 1;
+  }
+  
+  .text {
+    font-size: 14px;
+    color: #1e293b;
+  }
+  
+  .actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  
+  .button {
+    background-color: #3b82f6;
+    color: white;
+    padding: 6px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .button:hover {
+    background-color: #2563eb;
+  }
+  
+  .deleteButton {
+    background-color: #ef4444;
+  }
+  
+  .deleteButton:hover {
+    background-color: #dc2626;
+  }
+  

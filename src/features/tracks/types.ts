@@ -18,3 +18,14 @@ export type TrackFormData = {
   genres: string[]
   coverImage?: string
 }
+export interface QueryParams {
+  page: number
+  search: string
+  sort: 'title' | 'artist' | 'album' | 'createdAt'
+  order: 'asc' | 'desc'
+  genre?: string
+  artist?: string
+}
+
+export type SortOption = 'title' | 'artist' | 'album' | 'createdAt';
+export type SortOrder = 'asc' | 'desc';
