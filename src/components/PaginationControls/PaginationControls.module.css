@@ -1,53 +1,57 @@
 .paginationContainer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    padding: 16px;
-    flex-wrap: wrap;
-  }
-  
-  .navButton,
-  .pageButton {
-    padding: 6px 12px;
-    background-color: #f0f0f0;
-    border: none;
-    border-radius: 6px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-  }
-  
-  .pageButton:hover,
-  .navButton:hover {
-    background-color: #e0e0e0;
-    transform: scale(1.05);
-  }
-  
-  .pageButton:disabled,
-  .navButton:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-    transform: none;
-  }
-  
-  .active {
-    background-color: #3b82f6;
-    color: white;
-    font-weight: bold;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
-  }
-  
-  .pageNumbers {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  
-  .ellipsis {
-    padding: 6px 10px;
-    color: #888;
-    font-size: 16px;
-  }
-  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px 0;
+  flex-wrap: wrap;
+  background: transparent;
+}
+
+.navButton,
+.pageButton {
+  padding: 8px 14px;
+  background-color: #0ff;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 0 8px #0ff;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.navButton:hover,
+.pageButton:hover {
+  box-shadow: 0 0 16px #0ff;
+  transform: scale(1.05);
+}
+
+.navButton:disabled,
+.pageButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  box-shadow: none;
+  transform: none;
+}
+
+.pageNumbers {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ellipsis {
+  padding: 8px;
+  color: #0ff;
+  font-size: 1rem;
+}
+
+.pageButton.active {
+  background-color: #000;
+  color: #0ff;
+  box-shadow: 0 0 12px #0ff, inset 0 0 8px #0ff;
+  transform: none;
+}

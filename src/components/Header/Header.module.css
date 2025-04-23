@@ -15,12 +15,32 @@
 }
 
 .header {
-  font-size: 2rem;
+  font-size: 3rem;
   font-weight: 800;
   color: #0ff;
   text-align: center;
   text-shadow: 0 0 8px #0ff;
   margin: 0;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 12px;
+}
+
+.createButton {
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  background-color: #0ff;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 0 8px #0ff;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .searchWrapper {

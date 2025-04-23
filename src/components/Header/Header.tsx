@@ -59,7 +59,16 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <div className={styles.wrapper}>
-      <h1 data-testid="tracks-header" className={styles.header}>Music Tracks</h1>
+      <div className={styles.headerRow}>
+        <h1 data-testid="tracks-header" className={styles.header}>Music Tracks</h1>
+
+        <button
+            data-testid="create-track-button"
+            onClick={onCreate}
+            className={styles.createButton}
+          >Create Track</button>
+      </div>
+      
 
       <div className={styles.searchWrapper}>
         <input
@@ -111,12 +120,6 @@ const Header: React.FC<HeaderProps> = ({
         </div>
 
         <div className={styles.actionsRow}>
-          <button
-            data-testid="create-track-button"
-            onClick={onCreate}
-            className={styles.button}
-          >Create Track</button>
-
           <button
             data-testid="select-mode-toggle"
             onClick={onToggleSelectionMode}

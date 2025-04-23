@@ -1,3 +1,39 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #0d0f12;
+  overflow-x: hidden;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  left: -50%;
+  bottom: 0;
+  width: 200%;
+  height: 200%;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      to right,
+      rgba(0, 255, 255, 0.2) 0,
+      rgba(0, 255, 255, 0.2) 1px,
+      transparent 1px,
+      transparent 40px
+    ),
+    repeating-linear-gradient(
+      to top,
+      rgba(0, 255, 255, 0.2) 0,
+      rgba(0, 255, 255, 0.2) 1px,
+      transparent 1px,
+      transparent 40px
+    );
+  transform-origin: bottom center;
+  transform: translateY(100px) rotateX(60deg);
+  z-index: -1;
+}
+
 .modal-root {
   color: #333;
 }

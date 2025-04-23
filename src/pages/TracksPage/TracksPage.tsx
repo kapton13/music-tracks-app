@@ -1,15 +1,8 @@
-import { useEffect, useRef, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { nanoid } from 'nanoid'
 
 import { AppDispatch, RootState } from '../../app/store'
-import {
-  fetchTracks,
-  fetchAllArtists,
-  addTrackOptimistic,
-  replaceTempTrack,
-  removeTrackOptimistic,
-} from '../../features/tracks/tracksSlice'
+import { fetchTracks, fetchAllArtists } from '../../features/tracks/tracksSlice'
 import { fetchGenres } from '../../features/genres/genresSlice'
 import { Track, TrackFormData, QueryParams, SortOption, SortOrder } from '../../features/tracks/types'
 import useDebounce from '../../hooks/useDebounce'
@@ -22,65 +15,66 @@ import TrackCard from '../../components/TrackCard/TrackCard'
 import PaginationControls from '../../components/PaginationControls/PaginationControls'
 import Header from '../../components/Header/Header'
 
-
 import styles from './TracksPage.module.css'
 
-const TracksPage = () => {
+const TracksPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
-  const { list, loading, error, metadata, artists } = useSelector((state: RootState) => state.tracks)
-  const { list: genres, loading: genresLoading } = useSelector((state: RootState) => state.genres)
+  const { list, loading, error, metadata, artists } = useSelector((s: RootState) => s.tracks)
+  const { list: genres, loading: genresLoading } = useSelector((s: RootState) => s.genres)
 
   const [isModalOpen, setModalOpen] = useState(false)
   const [editingTrack, setEditingTrack] = useState<Track | null>(null)
 
   const [page, setPage] = useState(1)
-  const [searchInput, setSearchInput] = useState('')  
+  const [searchInput, setSearchInput] = useState('')
   const debouncedSearch = useDebounce(searchInput, 400)
   const [sort, setSort] = useState<SortOption>('title')
   const [order, setOrder] = useState<SortOrder>('asc')
   const [genreFilter, setGenreFilter] = useState('')
   const [artistFilter, setArtistFilter] = useState('')
 
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const trackIdRef = useRef<string | null>(null)
   const [pendingUploadId, setPendingUploadId] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
-  const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [selectionMode, setSelectionMode] = useState(false)
+  const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null)
 
-  const queryParams: QueryParams = useMemo(() => ({
-    page,
-    search: debouncedSearch,
-    sort,
-    order,
-    genre: genreFilter || undefined,
-    artist: artistFilter || undefined,
-  }), [page, debouncedSearch, sort, order, genreFilter, artistFilter])
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const queryParams: QueryParams = useMemo(
+    () => ({
+      page,
+      search: debouncedSearch,
+      sort,
+      order,
+      genre: genreFilter || undefined,
+      artist: artistFilter || undefined,
+    }),
+    [page, debouncedSearch, sort, order, genreFilter, artistFilter]
+  )
 
   const {
     handleCreateOrUpdate,
     handleDelete,
+    handleUploadNewFile,
+    handleReplaceFile,
     handleFileUpload,
     handleBulkDelete,
-    handleDeleteFile
+    handleDeleteFile,
   } = useTracksHandlers({
     queryParams,
     setEditingTrack,
     setModalOpen,
     fileInputRef,
     pendingUploadId,
+    setPendingUploadId,
     setUploading,
     setSelectedIds,
-    setSelectionMode,
+    setSelectionMode
   })
 
-  const {
-    handleToggleSelect,
-    handleSelectAll,
-    handleTogglePlay,
-  } = useTracksSelection(
-    list.map(track => track.id),
+  const { handleToggleSelect, handleSelectAll, handleTogglePlay } = useTracksSelection(
+    list.map(t => t.id),
     setSelectedIds,
     setCurrentlyPlayingId
   )
@@ -98,48 +92,13 @@ const TracksPage = () => {
     setPage(1)
   }, [debouncedSearch])
 
-  const handleUpload = (id: string) => {
-    trackIdRef.current = id
-    setPendingUploadId(id)
-    fileInputRef.current?.click()
-  }
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      handleFileUpload(file)
-    }
+    if (file) handleFileUpload(file)
   }
 
-  const handleFormSubmit = async (formData: TrackFormData) => {
-    if (!editingTrack) {
-      const tempId = nanoid()
-      const optimisticTrack: Track = {
-        id: tempId,
-        title: formData.title,
-        artist: formData.artist,
-        album: formData.album || '',
-        genres: formData.genres,
-        coverImage: formData.coverImage || '',
-        slug: '',
-        audioFile: '',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-  
-      dispatch(addTrackOptimistic(optimisticTrack))
-  
-      try {
-        const response = await handleCreateOrUpdate(formData, null)
-        if (response) {
-          dispatch(replaceTempTrack({ tempId, track: response }))
-        }
-      } catch {
-        dispatch(removeTrackOptimistic(tempId))
-      }
-    } else {
-      handleCreateOrUpdate(formData, editingTrack)
-    }
+  const handleFormSubmit = async (data: TrackFormData) => {
+    await handleCreateOrUpdate(data, editingTrack)
   }
 
   return (
@@ -154,7 +113,7 @@ const TracksPage = () => {
         sort={sort}
         order={order}
         onSortChange={setSort}
-        onOrderToggle={() => setOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+        onOrderToggle={() => setOrder(prev => (prev === 'asc' ? 'desc' : 'asc'))}
         genres={genres}
         artists={artists}
         onCreate={() => {
@@ -164,14 +123,14 @@ const TracksPage = () => {
         selectionMode={selectionMode}
         onToggleSelectionMode={() => setSelectionMode(prev => !prev)}
         selectedIds={selectedIds}
-        onSelectAll={handleSelectAll}
+        onSelectAll={() => handleSelectAll()}
         onBulkDelete={() => handleBulkDelete(selectedIds)}
         genresLoading={genresLoading}
         listLength={list.length}
       />
 
       {loading ? (
-        <div data-testid="loading-tracks">Loading tracks...</div>
+        <div data-testid="loading-tracks">Loading tracks…</div>
       ) : error ? (
         <div className={styles.error}>Error: {error}</div>
       ) : list.length === 0 ? (
@@ -187,8 +146,9 @@ const TracksPage = () => {
               isSelected={selectedIds.includes(track.id)}
               onToggleSelect={() => handleToggleSelect(track.id)}
               onPlay={handleTogglePlay}
-              onUpload={handleUpload}
-              onDeleteFile={handleDeleteFile}
+              onUpload={() => handleUploadNewFile(track.id)}
+              onDeleteFile={() => handleDeleteFile(track.id)}
+              onReplaceFile={() => handleReplaceFile(track.id)}
               onEdit={() => {
                 setEditingTrack(track)
                 setModalOpen(true)
@@ -208,11 +168,7 @@ const TracksPage = () => {
       />
 
       {metadata.totalPages > 1 && (
-        <PaginationControls
-          page={page}
-          totalPages={metadata.totalPages}
-          onPageChange={(newPage) => setPage(newPage)}
-        />
+        <PaginationControls page={page} totalPages={metadata.totalPages} onPageChange={setPage} />
       )}
 
       <TrackFormModal
@@ -223,14 +179,14 @@ const TracksPage = () => {
         }}
       >
         <TrackForm
+          defaultValues={editingTrack || undefined}
           onSubmit={handleFormSubmit}
           onCancel={() => {
-            setModalOpen(false);
-            setEditingTrack(null);
+            setModalOpen(false)
+            setEditingTrack(null)
           }}
-          defaultValues={editingTrack || undefined}
         />
-        {uploading && <p className={styles.uploading}>Uploading file...</p>}
+        {uploading && <p className={styles.uploading}>Uploading file…</p>}
       </TrackFormModal>
     </div>
   )

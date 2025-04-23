@@ -1,173 +1,141 @@
-import { useEffect, useRef, useState } from 'react'
-import WaveSurfer from 'wavesurfer.js'
+import React, { useEffect, useRef, useState } from 'react';
+import WaveSurfer from 'wavesurfer.js';
 
-import styles from './Waveform.module.css'
+import { PlayIcon, PauseIcon, RepeatIcon } from '../Icons/Icons';
+
+import styles from './Waveform.module.css';
 
 interface WaveformProps {
-  audioUrl: string
-  isPlaying: boolean
-  onPlay: (id: string, forcePause?: boolean) => void
-  trackId: string
+  audioUrl: string;
+  isPlaying: boolean;
+  onPlay: (id: string, forcePause?: boolean) => void;
+  trackId: string;
 }
 
-const Waveform = ({ audioUrl, isPlaying, onPlay, trackId }: WaveformProps) => {
-  const containerRef = useRef<HTMLDivElement | null>(null)
-  const waveRef = useRef<WaveSurfer | null>(null)
+const Waveform: React.FC<WaveformProps> = ({ audioUrl, isPlaying, onPlay, trackId }) => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const waveRef = useRef<WaveSurfer | null>(null);
 
-  const [volume, setVolume] = useState(1)
-  const [duration, setDuration] = useState(0)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [isRepeat, setIsRepeat] = useState(false)
-  const isRepeatRef = useRef(isRepeat)
+  const [volume, setVolume] = useState(1);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [isRepeat, setIsRepeat] = useState(false);
+  const isRepeatRef = useRef(isRepeat);
 
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60)
-    const s = Math.floor(seconds % 60)
-    return `${m}:${s < 10 ? '0' + s : s}`
-  }
+  const formatTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${sec < 10 ? '0' + sec : sec}`;
+  };
 
   useEffect(() => {
-    if (!containerRef.current) return
-
+    if (!containerRef.current) return;
     waveRef.current = WaveSurfer.create({
       container: containerRef.current,
-      waveColor: '#ccc',
-      progressColor: '#3b82f6',
+      waveColor: 'rgba(0,255,255,0.4)',
+      progressColor: '#0ff',
       barWidth: 2,
-      height: 64,
+      height: 80,
       normalize: true,
-      cursorColor: '#3b82f6',
-    })
-
-    waveRef.current.load(audioUrl)
+      cursorColor: '#0ff',
+    });
+    waveRef.current.load(audioUrl);
 
     waveRef.current.on('ready', () => {
-      setDuration(waveRef.current?.getDuration() || 0)
-      waveRef.current?.setVolume(volume)
-    })
-
+      setDuration(waveRef.current!.getDuration());
+      waveRef.current!.setVolume(volume);
+    });
     waveRef.current.on('audioprocess', () => {
-      if (waveRef.current?.isPlaying()) {
-        setCurrentTime(waveRef.current.getCurrentTime())
+      if (waveRef.current!.isPlaying()) {
+        setCurrentTime(waveRef.current!.getCurrentTime());
       }
-    })
-
-    waveRef.current.on('interaction', () => {
-      setCurrentTime(waveRef.current?.getCurrentTime() || 0)
-    })
-
+    });
     waveRef.current.on('finish', () => {
-        if (isRepeatRef.current) {
-          waveRef.current?.play()
-        } else {
-          waveRef.current?.seekTo(0)
-          onPlay(trackId, true)
-        }
-      })
-
-    return () => {
-      waveRef.current?.destroy()
-    }
-  }, [audioUrl])
-
-  // Play / Pause control
-  useEffect(() => {
-    if (!waveRef.current) return
-    if (isPlaying) {
-      waveRef.current?.play()
-    } else {
-      waveRef.current?.pause()
-    }
-  }, [isPlaying])
-
-  // Volume control
-  useEffect(() => {
-    waveRef.current?.setVolume(volume)
-  }, [volume])
-
-  // Автопауза при згортанні
-  useEffect(() => {
-    const handleVisibility = () => {
-      if (document.hidden) {
-        onPlay(trackId, true)
+      if (isRepeatRef.current) waveRef.current!.play();
+      else {
+        waveRef.current!.seekTo(0);
+        onPlay(trackId, true);
       }
-    }
-    document.addEventListener('visibilitychange', handleVisibility)
-    return () => document.removeEventListener('visibilitychange', handleVisibility)
-  }, [trackId, onPlay])
+    });
 
-  // Контроль повтору
+    return () => void waveRef.current!.destroy();
+  }, [audioUrl]);
+
   useEffect(() => {
-    isRepeatRef.current = isRepeat
-  }, [isRepeat])
+    waveRef.current?.[isPlaying ? 'play' : 'pause']();
+  }, [isPlaying]);
 
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = parseFloat(e.target.value)
-    setVolume(newVolume)
-  }
+  useEffect(() => {
+    waveRef.current?.setVolume(volume);
+  }, [volume]);
 
+  useEffect(() => {
+    isRepeatRef.current = isRepeat;
+  }, [isRepeat]);
+
+  const handlePlay = () => onPlay(trackId, isPlaying ? true : undefined);
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTime = parseFloat(e.target.value)
-    const percent = newTime / duration
-    waveRef.current?.seekTo(percent)
-    setCurrentTime(newTime)
-  }
-
-  const handleTogglePlay = () => {
-    if (isPlaying) {
-        onPlay(trackId, true)
-      } else {
-        onPlay(trackId)
-      }
-  }
+    const t = parseFloat(e.target.value);
+    waveRef.current!.seekTo(t / duration);
+    setCurrentTime(t);
+  };
+  const handleRepeat = () => setIsRepeat(prev => !prev);
+  const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => setVolume(parseFloat(e.target.value));
 
   return (
     <div className={styles.wrapper}>
-      <div ref={containerRef} className={styles.waveContainer} />
+      <div className={styles.waveRow}>
+        <div ref={containerRef} className={styles.waveContainer} />
+        <div className={styles.volumeContainer}>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={volume}
+            onChange={handleVolume}
+            className={styles.volumeSlider}
+            aria-label="Volume"
+          />
+        </div>
+      </div>
 
-      <div className={styles.controls}>
-        <button
-          onClick={handleTogglePlay}
-          aria-label={isPlaying ? 'Pause' : 'Play'}
-          className={styles.playButton}
-        >
-          {isPlaying ? '⏸' : '▶️'}
-        </button>
-
-        <span>{formatTime(currentTime)}</span>
+      <div className={styles.controlsRow}>
+        <div className={styles.playBlock}>
+          <button
+            onClick={handlePlay}
+            disabled={!duration}
+            aria-label={isPlaying ? 'Pause' : 'Play'}
+            className={styles.playButton}
+          >
+            {isPlaying ? <PauseIcon className={styles.icon} /> : <PlayIcon className={styles.icon} />}
+          </button>
+          <span className={styles.time}>{formatTime(currentTime)}</span>
+        </div>
 
         <input
           type="range"
           min={0}
           max={duration}
-          step={0.01}
+          step="0.01"
           value={currentTime}
           onChange={handleSeek}
           className={styles.seekBar}
         />
 
-        <span>{formatTime(duration)}</span>
-
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          value={volume}
-          onChange={handleVolumeChange}
-          aria-label="Volume"
-        />
-
-        <button
-          onClick={() => setIsRepeat(prev => !prev)}
-          className={styles.repeatButton}
-          aria-label="Repeat"
-        >
-          🔁 {isRepeat ? 'on' : 'off'}
-        </button>
+        <div className={styles.repeatBlock}>
+          <button
+            onClick={handleRepeat}
+            aria-label="Repeat"
+            className={`${styles.repeatButton} ${isRepeat ? styles.repeatActive : ''}`}
+          >
+            <RepeatIcon className={styles.icon} />
+          </button>
+          <span className={styles.time}>{formatTime(duration)}</span>
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Waveform
+export default Waveform;

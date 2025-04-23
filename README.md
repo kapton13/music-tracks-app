@@ -1,54 +1,49 @@
-# React + TypeScript + Vite
+# Productivity Tracker App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project meets all requirements specified in the task specification (ТЗ). Below is a summary of implemented features and verification of each point.
 
-Currently, two official plugins are available:
+## 1. Create a Track (without file upload)
+- [x] Modal dialog to create a new track (`data-testid="create-track-button"` triggers modal).
+- [x] Form fields: title, artist, album, coverImage (URL), genres selector.
+- [x] Multiple genres: tags with "×" to remove and "+" to add using dropdown.
+- [x] Client-side validation: required title and artist, genre minimum 1.
+- [x] Cover image URL validation; default image displayed if none.
+- [x] No file upload in create form.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 2. Edit Track Metadata
+- [x] "Edit" button (`data-testid="edit-track-{id}"`) opens pre-filled modal.
+- [x] Ability to change title, artist, album, genres, coverImage.
+- [x] Validation and error messages (`data-testid="error-{field}"`).
+- [x] Changes saved to API and immediately reflected in list.
 
-## Expanding the ESLint configuration
+## 3. Upload a Track (file)
+- [x] Separate flow: "Upload" (`data-testid="upload-track-{id}"`) and "Replace" buttons.
+- [x] File input hidden on page root, triggered by card buttons.
+- [x] Accepts MP3/WAV, max size 20 MB with client-side checks.
+- [x] Removal/replace of existing file (`data-testid="delete-audio-{id}"`).
+- [x] Uploaded file becomes playable inline (waveform + HTML audio).
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 4. Delete a Track
+- [x] "Delete" button (`data-testid="delete-track-{id}"`) with confirmation dialog.
+- [x] Track removed from UI immediately (optimistic update) and backend.
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+## 5. List View with Pagination, Sorting, and Filtering
+- [x] Displays track cards with pagination controls (`data-testid="pagination"`, `pagination-prev`, `pagination-next`).
+- [x] Sorting control (`data-testid="sort-select"`) and toggle order.
+- [x] Filters by artist (`data-testid="filter-artist"`) and genre (`data-testid="filter-genre"`).
+- [x] Search input (`data-testid="search-input"`) with debounce.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 6. Extra Tasks
+- [x] Bulk delete: toggle selection mode (`data-testid="select-mode-toggle"`), select all (`data-testid="select-all"`), bulk delete button.
+- [x] Optimistic updates for create, delete, bulk delete.
+- [x] Waveform visualization powered by `wavesurfer.js` component.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 7. Testability
+- [x] All interactive elements have appropriate `data-testid` attributes as per spec.
+- [x] Loading states (`data-testid="loading-tracks"`, `data-loading="true"`).
+- [x] Confirmation dialogs and toast container (`data-testid="toast-container"`, `toast-success`, `toast-error`).
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+## 8. Application Start
+```bash
+npm install
+npm start
