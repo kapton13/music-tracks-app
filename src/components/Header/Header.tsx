@@ -2,7 +2,10 @@ import React from 'react'
 
 import { SortOption, SortOrder } from '../../features/tracks/types'
 
+import CustomDropdown from '../CustomDropdown/CustomDropdown'
+
 import styles from './Header.module.css'
+
 
 interface HeaderProps {
   search: string
@@ -47,8 +50,13 @@ const Header: React.FC<HeaderProps> = ({
   onSelectAll,
   onBulkDelete,
   genresLoading,
-  listLength,
+  listLength
 }) => {
+  const sortOptions: SortOption[] = ['title', 'artist', 'album', 'createdAt']
+
+  const genreItems = ['' as string, ...genres]
+  const artistItems = ['' as string, ...artists]
+
   return (
     <div className={styles.wrapper}>
       <h1 data-testid="tracks-header" className={styles.header}>Music Tracks</h1>
@@ -66,50 +74,40 @@ const Header: React.FC<HeaderProps> = ({
 
       <div className={styles.controls}>
         <div className={styles.filtersRow}>
-          <select
-            data-testid="filter-genre"
-            value={genreFilter}
-            onChange={e => onGenreChange(e.target.value)}
-            className={styles.select}
-          >
-            <option value="">All Genres</option>
-            {genresLoading ? <option disabled>Loading...</option> : genres.map(genre => (
-              <option key={genre} value={genre}>{genre}</option>
-            ))}
-          </select>
+          <CustomDropdown
+            items={genreItems}
+            selected={genreFilter}
+            onChange={onGenreChange}
+            labelKey={g => g || 'All Genres'}
+            valueKey={g => g}
+            loading={genresLoading}
+            placeholder="All Genres"
+          />
 
-          <select
-            data-testid="filter-artist"
-            value={artistFilter}
-            onChange={e => onArtistChange(e.target.value)}
-            className={styles.select}
-          >
-            <option value="">All Artists</option>
-            {artists.map(artist => (
-              <option key={artist} value={artist}>{artist}</option>
-            ))}
-          </select>
+          <CustomDropdown
+            items={artistItems}
+            selected={artistFilter}
+            onChange={onArtistChange}
+            labelKey={a => a || 'All Artists'}
+            valueKey={a => a}
+            loading={false}
+            placeholder="All Artists"
+          />
 
-          <div className={styles.sortGroup}>
-            <select
-              data-testid="sort-select"
-              value={sort}
-              onChange={e => onSortChange(e.target.value as SortOption)}
-              className={styles.select}
-            >
-              <option value="title">Title</option>
-              <option value="artist">Artist</option>
-              <option value="album">Album</option>
-              <option value="createdAt">Created At</option>
-            </select>
-            <button
-              data-testid="sort-order-toggle"
-              onClick={onOrderToggle}
-              className={styles.sortButton}
-            >
-              {order === 'asc' ? '↑' : '↓'}
-            </button>
-          </div>
+          <CustomDropdown
+            items={sortOptions}
+            selected={sort}
+            onChange={onSortChange}
+            labelKey={opt => `${opt.charAt(0).toUpperCase() + opt.slice(1)}`}
+            valueKey={opt => opt}
+          />
+          <button
+            data-testid="sort-order-toggle"
+            onClick={onOrderToggle}
+            className={styles.sortButton}
+          >
+            {order === 'asc' ? 'Sort by ↑' : 'Sort by ↓'}
+          </button>
         </div>
 
         <div className={styles.actionsRow}>
@@ -117,36 +115,30 @@ const Header: React.FC<HeaderProps> = ({
             data-testid="create-track-button"
             onClick={onCreate}
             className={styles.button}
-          >
-            Create Track
-          </button>
+          >Create Track</button>
 
           <button
             data-testid="select-mode-toggle"
             onClick={onToggleSelectionMode}
             className={styles.button}
-          >
-            {selectionMode ? 'Cancel Selection' : 'Select Multiple'}
-          </button>
+          >{selectionMode ? 'Cancel Selection' : 'Select Multiple'}</button>
 
           {selectionMode && (
-            <>
+            <> 
               <button
                 data-testid="select-all"
                 onClick={onSelectAll}
                 className={styles.button}
-              >
-                {selectedIds.length === listLength ? 'Deselect All' : 'Select All'}
-              </button>
+              >{selectedIds.length === listLength ? 'Deselect All' : 'Select All'}</button>
+
               <div className={styles.placeholder} />
+
               {selectedIds.length > 0 && (
                 <button
                   data-testid="bulk-delete-button"
                   onClick={onBulkDelete}
                   className={styles.danger}
-                >
-                  Delete selected ({selectedIds.length})
-                </button>
+                >Delete selected ({selectedIds.length})</button>
               )}
             </>
           )}
@@ -156,4 +148,4 @@ const Header: React.FC<HeaderProps> = ({
   )
 }
 
-export default Header;
+export default Header

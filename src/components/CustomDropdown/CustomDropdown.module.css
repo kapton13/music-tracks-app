@@ -1,0 +1,76 @@
+.dropdown {
+    position: relative;
+    display: inline-block;
+    width: 220px;
+  }
+  
+  .dropdownButton {
+    width: 100%;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 8px;
+    background-color: #1a1c20;
+    color: #0ff;
+    font-size: 0.9rem;
+    cursor: pointer;
+    box-shadow: 0 0 6px #0ff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    transition: box-shadow 0.2s ease;
+  }
+  
+  .dropdownButton:hover {
+    box-shadow: 0 0 12px #0ff;
+  }
+  
+  .caret {
+    margin-left: 8px;
+    font-size: 0.8rem;
+  }
+  
+  .menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 100%;
+    background-color: #1a1c20;
+    border-radius: 8px;
+    box-shadow: 0 0 8px #0ff;
+    overflow: hidden;
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 4px 0;
+  }
+  
+  .menuItem {
+    padding: 8px 12px;
+    color: #fff;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  
+  .menuItem:hover {
+    background-color: #0ff;
+    color: #000;
+  }
+  
+  .menuItemDisabled {
+    padding: 8px 12px;
+    color: #555;
+    cursor: default;
+    opacity: 0.6;
+  }
+  
+  .active {
+    background-color: #0ff;
+    color: #000;
+  }
