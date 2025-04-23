@@ -5,11 +5,12 @@ import { toast } from 'react-toastify'
 import {
   createTrack,
   updateTrack,
-  deleteTrack,
   uploadAudioFile,
   deleteTracksBulk,
   deleteTrackFile,
-  fetchTracks
+  deleteTrack,
+  fetchTracks,
+  removeTrackOptimistic,
 } from '../features/tracks/tracksSlice'
 
 import { AppDispatch } from '../app/store'
@@ -39,9 +40,12 @@ export const useTracksHandlers = ({
 }: Params) => {
   const dispatch = useDispatch<AppDispatch>()
 
-  const handleCreateOrUpdate = useCallback(async (formData: TrackFormData, editingTrack: Track | null) => {
+  const handleCreateOrUpdate = useCallback(async (
+    formData: TrackFormData,
+    editingTrack: Track | null
+  ): Promise<Track | undefined> => {
     try {
-      let createdTrack: Track | null = null
+      let createdTrack: Track
       if (editingTrack) {
         createdTrack = await dispatch(updateTrack({ id: editingTrack.id, data: formData })).unwrap()
         toast.success('Track updated!')
@@ -55,12 +59,12 @@ export const useTracksHandlers = ({
 
         if (!ALLOWED_AUDIO_TYPES.includes(file.type)) {
           toast.error('Only .mp3 and .wav files are allowed')
-          return
+          return createdTrack
         }
 
         if (file.size > MAX_AUDIO_FILE_SIZE) {
           toast.error('File size must be 20MB or less')
-          return
+          return createdTrack
         }
 
         setUploading(true)
@@ -72,8 +76,11 @@ export const useTracksHandlers = ({
       await dispatch(fetchTracks(queryParams))
       setModalOpen(false)
       setEditingTrack(null)
+
+      return createdTrack
     } catch (e) {
       toast.error(`Error: ${String(e)}`)
+      return undefined
     }
   }, [dispatch, queryParams, fileInputRef, setEditingTrack, setModalOpen, setUploading])
 
@@ -81,11 +88,12 @@ export const useTracksHandlers = ({
     const confirmed = window.confirm('Are you sure you want to delete this track?')
     if (!confirmed) return
 
+    dispatch(removeTrackOptimistic(id))
     try {
       await dispatch(deleteTrack(id)).unwrap()
-      await dispatch(fetchTracks(queryParams))
       toast.success('Track deleted!')
     } catch (e) {
+      await dispatch(fetchTracks(queryParams))
       toast.error(`Error: ${String(e)}`)
     }
   }, [dispatch, queryParams])
@@ -111,14 +119,18 @@ export const useTracksHandlers = ({
   }, [dispatch, pendingUploadId, setUploading])
 
   const handleBulkDelete = useCallback(async (ids: string[]) => {
+    const backup = [...ids]
+    backup.forEach(id => dispatch(removeTrackOptimistic(id)))
+  
     try {
       await dispatch(deleteTracksBulk(ids)).unwrap()
-      await dispatch(fetchTracks(queryParams))
-      setSelectedIds([])
-      setSelectionMode(false)
       toast.success('Tracks deleted!')
+      setSelectedIds([]) 
+      setSelectionMode(false)
+  
     } catch (e) {
       toast.error(`Bulk delete failed: ${String(e)}`)
+      await dispatch(fetchTracks(queryParams))
     }
   }, [dispatch, queryParams, setSelectedIds, setSelectionMode])
 
@@ -142,4 +154,4 @@ export const useTracksHandlers = ({
     handleBulkDelete,
     handleDeleteFile,
   }
-} 
+}

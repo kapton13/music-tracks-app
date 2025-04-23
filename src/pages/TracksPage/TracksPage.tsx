@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { nanoid } from 'nanoid'
 
 import { AppDispatch, RootState } from '../../app/store'
 import {
   fetchTracks,
   fetchAllArtists,
+  addTrackOptimistic,
+  replaceTempTrack,
+  removeTrackOptimistic,
 } from '../../features/tracks/tracksSlice'
 import { fetchGenres } from '../../features/genres/genresSlice'
 import { Track, TrackFormData, QueryParams, SortOption, SortOrder } from '../../features/tracks/types'
@@ -107,8 +111,35 @@ const TracksPage = () => {
     }
   }
 
-  const handleFormSubmit = (formData: TrackFormData) => {
-    handleCreateOrUpdate(formData, editingTrack)
+  const handleFormSubmit = async (formData: TrackFormData) => {
+    if (!editingTrack) {
+      const tempId = nanoid()
+      const optimisticTrack: Track = {
+        id: tempId,
+        title: formData.title,
+        artist: formData.artist,
+        album: formData.album || '',
+        genres: formData.genres,
+        coverImage: formData.coverImage || '',
+        slug: '',
+        audioFile: '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+  
+      dispatch(addTrackOptimistic(optimisticTrack))
+  
+      try {
+        const response = await handleCreateOrUpdate(formData, null)
+        if (response) {
+          dispatch(replaceTempTrack({ tempId, track: response }))
+        }
+      } catch {
+        dispatch(removeTrackOptimistic(tempId))
+      }
+    } else {
+      handleCreateOrUpdate(formData, editingTrack)
+    }
   }
 
   return (

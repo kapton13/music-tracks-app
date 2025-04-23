@@ -1,5 +1,10 @@
+import React from 'react'
 import Waveform from '../Waveform/Waveform'
+
 import { Track } from '../../features/tracks/types'
+
+import defaultCover from '../../assets/default-cover.png'
+
 import styles from './TrackCard.module.css'
 
 interface Props {
@@ -15,7 +20,7 @@ interface Props {
   onDelete: () => void
 }
 
-const TrackCard = ({
+const TrackCard: React.FC<Props> = ({
   track,
   isPlaying,
   selectionMode,
@@ -26,7 +31,9 @@ const TrackCard = ({
   onDeleteFile,
   onEdit,
   onDelete,
-}: Props) => {
+}) => {
+  const coverSrc = track.coverImage?.trim() ? track.coverImage : defaultCover
+
   return (
     <div className={styles.card} data-testid={`track-item-${track.id}`}>
       <div className={styles.topRow}>
@@ -39,16 +46,14 @@ const TrackCard = ({
           />
         )}
 
-        {track.coverImage && (
-          <img
-            src={track.coverImage}
-            alt={`${track.title} cover`}
-            className={styles.coverImage}
-            data-testid={`track-item-${track.id}-cover`}
-          />
-        )}
+        <img
+          src={coverSrc}
+          alt={`${track.title} cover`}
+          className={styles.coverImage}
+          data-testid={`track-item-${track.id}-cover`}
+        />
 
-        <div className={styles.meta}>  
+        <div className={styles.meta}>
           <div className={styles.text}><strong>Title:</strong> {track.title}</div>
           <div className={styles.text}><strong>Artist:</strong> {track.artist}</div>
           {track.album && <div className={styles.text}><strong>Album:</strong> {track.album}</div>}
@@ -64,21 +69,37 @@ const TrackCard = ({
             isPlaying={isPlaying}
             onPlay={onPlay}
           />
-          <button onClick={() => onDeleteFile(track.id)} data-testid={`delete-audio-${track.id}`} className={styles.deleteButton}>
+          <button
+            onClick={() => onDeleteFile(track.id)}
+            data-testid={`delete-audio-${track.id}`}
+            className={styles.deleteButton}
+          >
             Delete Audio File
           </button>
         </>
       ) : (
-        <button onClick={() => onUpload(track.id)} data-testid={`upload-track-${track.id}`} className={styles.button}>
+        <button
+          onClick={() => onUpload(track.id)}
+          data-testid={`upload-track-${track.id}`}
+          className={styles.button}
+        >
           Upload Audio
         </button>
       )}
 
       <div className={styles.actions}>
-        <button onClick={onEdit} data-testid={`edit-track-${track.id}`} className={styles.button}>
+        <button
+          onClick={onEdit}
+          data-testid={`edit-track-${track.id}`}
+          className={styles.button}
+        >
           Edit
         </button>
-        <button onClick={onDelete} data-testid={`delete-track-${track.id}`} className={styles.deleteButton}>
+        <button
+          onClick={onDelete}
+          data-testid={`delete-track-${track.id}`}
+          className={styles.deleteButton}
+        >
           Delete
         </button>
       </div>

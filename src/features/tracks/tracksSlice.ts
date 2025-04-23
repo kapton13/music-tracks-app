@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk, PayloadAction  } from '@reduxjs/toolkit'
 import axios, { AxiosError } from 'axios'
 import { toast } from 'react-toastify'
 
@@ -187,7 +187,23 @@ export const deleteTrackFile = createAsyncThunk<
 const tracksSlice = createSlice({
   name: 'tracks',
   initialState,
-  reducers: {},
+  reducers: {
+    addTrackOptimistic: (state, action: PayloadAction<Track>) => {
+      state.list.unshift(action.payload)
+    },
+    replaceTempTrack: (state, action: PayloadAction<{ tempId: string, track: Track }>) => {
+      const index = state.list.findIndex(t => t.id === action.payload.tempId)
+      if (index !== -1) {
+        state.list[index] = action.payload.track
+      }
+    },
+    removeTrackOptimistic: (state, action: PayloadAction<string>) => {
+      state.list = state.list.filter(track => track.id !== action.payload)
+    },
+    restoreTrack: (state, action: PayloadAction<Track>) => {
+      state.list.unshift(action.payload)
+    },
+  },
   extraReducers: builder => {
     builder
       .addCase(fetchTracks.pending, state => {
@@ -288,3 +304,10 @@ const tracksSlice = createSlice({
 })
 
 export default tracksSlice.reducer
+
+export const {
+  addTrackOptimistic,
+  replaceTempTrack,
+  removeTrackOptimistic,
+  restoreTrack
+} = tracksSlice.actions
