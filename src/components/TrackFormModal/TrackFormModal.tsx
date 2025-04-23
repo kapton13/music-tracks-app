@@ -1,5 +1,6 @@
 import { ReactNode, useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
+
 import styles from './TrackFormModal.module.css'
 
 interface Props {
@@ -15,21 +16,15 @@ const TrackFormModal = ({ isOpen, onClose, children }: Props) => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node
-      if (
-        modalRef.current &&
-        !modalRef.current.contains(target)
-      ) {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
         onClose()
       }
     }
-
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose()
       }
     }
-
     document.addEventListener('mousedown', handleClickOutside)
     document.addEventListener('keydown', handleEscape)
     return () => {
@@ -42,13 +37,7 @@ const TrackFormModal = ({ isOpen, onClose, children }: Props) => {
 
   return ReactDOM.createPortal(
     <div className={styles.overlay}>
-      <div
-        ref={modalRef}
-        className={styles.modal}
-        role="dialog"
-        aria-modal="true"
-      >
-        <button onClick={onClose} className={styles.close}>×</button>
+      <div ref={modalRef} className={styles.modal} role="dialog" aria-modal="true">
         {children}
       </div>
     </div>,

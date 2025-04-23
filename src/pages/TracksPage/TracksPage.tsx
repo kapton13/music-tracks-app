@@ -224,11 +224,11 @@ const TracksPage = () => {
       >
         <TrackForm
           onSubmit={handleFormSubmit}
+          onCancel={() => {
+            setModalOpen(false);
+            setEditingTrack(null);
+          }}
           defaultValues={editingTrack || undefined}
-          onUpload={handleUpload}
-          onDeleteFile={handleDeleteFile}
-          trackIdRef={trackIdRef}
-          pendingUploadId={pendingUploadId}
         />
         {uploading && <p className={styles.uploading}>Uploading file...</p>}
       </TrackFormModal>
