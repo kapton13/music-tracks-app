@@ -21,6 +21,8 @@ interface Props {
   onDelete: () => void
 }
 
+const baseUrl = import.meta.env.VITE_API_URL || window.location.origin
+
 const TrackCard: React.FC<Props> = ({
   track,
   isPlaying,
@@ -86,7 +88,7 @@ const TrackCard: React.FC<Props> = ({
         <>
           <Waveform
             trackId={track.id}
-            audioUrl={`http://localhost:8000/api/files/${track.audioFile}`}
+            audioUrl={`${baseUrl}/api/files/${track.audioFile}`}
             isPlaying={isPlaying}
             onPlay={onPlay}
           />
