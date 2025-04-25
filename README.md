@@ -1,3 +1,8 @@
+# [Music Tracks App](https://music-tracks-app.vercel.app/tracks) 
+
+## [Server code](https://github.com/kapton13/music-tracks-server/tree/master)
+
+
 # Productivity Tracker App
 
 This project meets all requirements specified in the task specification (ТЗ). Below is a summary of implemented features and verification of each point.
