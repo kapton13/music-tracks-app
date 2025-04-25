@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction  } from '@reduxjs/toolkit'
-import axios, { AxiosError } from 'axios'
+import { AxiosError } from 'axios'
 import { toast } from 'react-toastify'
+import { api } from '../../services/api'
 
 import { Track } from './types'
 
@@ -53,7 +54,10 @@ export const fetchTracks = createAsyncThunk(
       artist: params.artist || '',
     })
 
-    const response = await axios.get(`http://localhost:8000/api/tracks?${query.toString()}`)
+    const response = await api.get<{
+      data: Track[]
+      meta: TracksState['metadata']
+    }>(`/api/tracks?${query.toString()}`)
     return response.data
   }
 )
@@ -61,7 +65,7 @@ export const fetchTracks = createAsyncThunk(
 export const fetchAllArtists = createAsyncThunk(
   'tracks/fetchAllArtists',
   async () => {
-    const response = await axios.get('http://localhost:8000/api/tracks?limit=10000')
+    const response = await api.get<{ data: Track[] }>('/api/tracks?limit=10000')
     const data = response.data.data as Track[]
     const artists = Array.from(new Set(data.map(t => t.artist))).sort((a, b) => a.localeCompare(b))
     return artists
@@ -82,7 +86,7 @@ export const createTrack = createAsyncThunk<
   'tracks/createTrack',
   async (trackData, { rejectWithValue }) => {
     try {
-      const response = await axios.post('http://localhost:8000/api/tracks', {
+      const response = await api.post<Track>('/api/tracks', {
         ...trackData,
         album: trackData.album || '',
       })
@@ -102,7 +106,7 @@ export const updateTrack = createAsyncThunk<
   'tracks/updateTrack',
   async ({ id, data }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(`http://localhost:8000/api/tracks/${id}`, data)
+      const response = await api.put<Track>(`/api/tracks/${id}`, data)
       return response.data
     } catch (error) {
       const err = error as AxiosError<{ error: string }>
@@ -119,7 +123,7 @@ export const deleteTrack = createAsyncThunk<
   'tracks/deleteTrack',
   async (id, { rejectWithValue }) => {
     try {
-      await axios.delete(`http://localhost:8000/api/tracks/${id}`)
+      await api.delete(`/api/tracks/${id}`)
       return id
     } catch (error) {
       const err = error as AxiosError<{ error: string }>
@@ -139,7 +143,7 @@ export const uploadAudioFile = createAsyncThunk<
       const formData = new FormData()
       formData.append('file', file)
 
-      const res = await axios.post(`http://localhost:8000/api/tracks/${id}/upload`, formData, {
+      const res = await api.post<Track>(`/api/tracks/${id}/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -159,7 +163,10 @@ export const deleteTracksBulk = createAsyncThunk<
   { rejectValue: string }
 >('tracks/deleteTracksBulk', async (ids, { rejectWithValue }) => {
   try {
-    const response = await axios.post('http://localhost:8000/api/tracks/delete', { ids })
+    const response = await api.post<{
+      success: string[]
+      failed: string[]
+    }>('/api/tracks/delete', { ids })
     return response.data
   } catch (error) {
     const err = error as AxiosError<{ error: string }>
@@ -175,7 +182,7 @@ export const deleteTrackFile = createAsyncThunk<
   'tracks/deleteTrackFile',
   async (id, { rejectWithValue }) => {
     try {
-      const response = await axios.delete(`http://localhost:8000/api/tracks/${id}/file`)
+      const response = await api.delete<Track>(`/api/tracks/${id}/file`)
       return response.data
     } catch (error) {
       const err = error as AxiosError<{ error: string }>

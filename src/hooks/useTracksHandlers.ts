@@ -1,6 +1,5 @@
 import { useCallback } from 'react'
-import { useDispatch } from 'react-redux'
-import type { AppDispatch } from '../app/store'
+import { useAppDispatch } from './useAppHooks';
 import { toast } from 'react-toastify'
 import {
   createTrack,
@@ -39,22 +38,29 @@ export const useTracksHandlers = ({
   setSelectedIds,
   setSelectionMode,
 }: Params) => {
-  const dispatch = useDispatch<AppDispatch>()
+  const dispatch = useAppDispatch()
 
   const handleCreateOrUpdate = useCallback(
     async (formData: TrackFormData, editingTrack: Track | null): Promise<Track | undefined> => {
       try {
-        const action = editingTrack
-          ? updateTrack({ id: editingTrack.id, data: formData })
-          : createTrack(formData)
-        const created = await dispatch(action).unwrap()
-        toast.success(editingTrack ? 'Track updated!' : 'Track created!')
-
+        let result: Track
+  
+        if (editingTrack) {
+          result = await dispatch(
+            updateTrack({ id: editingTrack.id, data: formData })
+          ).unwrap()
+          toast.success('Track updated!')
+        } else {
+          result = await dispatch(createTrack(formData)).unwrap()
+          toast.success('Track created!')
+        }
+  
         await dispatch(fetchTracks(queryParams))
         await dispatch(fetchAllArtists())
         setModalOpen(false)
         setEditingTrack(null)
-        return created
+  
+        return result
       } catch (error: unknown) {
         toast.error(`Error: ${String(error)}`)
         return undefined

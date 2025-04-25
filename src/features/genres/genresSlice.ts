@@ -1,10 +1,31 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import axios from 'axios'
 
-export const fetchGenres = createAsyncThunk('genres/fetchGenres', async () => {
-  const response = await axios.get<string[]>('http://localhost:8000/api/genres')
-  return response.data
-})
+import { api } from '../../services/api'
+
+export const fetchGenres = createAsyncThunk<
+  string[],
+  void,
+  { rejectValue: string }
+>(
+  'genres/fetchGenres',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get<string[]>('/api/genres')
+      return response.data
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const data = err.response?.data as { message?: string }
+        const message = data?.message ?? err.message
+        return rejectWithValue(message)
+      }
+      if (err instanceof Error) {
+        return rejectWithValue(err.message)
+      }
+      return rejectWithValue('Failed to fetch genres')
+    }
+  }
+)
 
 interface GenresState {
   list: string[]
